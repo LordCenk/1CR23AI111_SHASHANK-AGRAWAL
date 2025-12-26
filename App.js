@@ -2,152 +2,159 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
+  FlatList,
   StyleSheet,
 } from 'react-native';
 
-
-const questions = [
-  {
-    question: 'What does React Native use to build UI?',
-    options: ['HTML', 'Native Components', 'XML', 'CSS'],
-    correctAnswer: 'Native Components',
-  },
-  {
-    question: 'Which hook is used for state management?',
-    options: ['useEffect', 'useState', 'useRef', 'useMemo'],
-    correctAnswer: 'useState',
-  },
-  {
-    question: 'Expo is mainly used for?',
-    options: [
-      'Database',
-      'Backend',
-      'Simplifying React Native development',
-      'Testing only',
-    ],
-    correctAnswer: 'Simplifying React Native development',
-  },
-];
-
-
 export default function App() {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
+  const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState('');
+  const [expenses, setExpenses] = useState([]);
 
-  const currentQuestion = questions[currentQuestionIndex];
-
-  const handleOptionPress = (selectedOption) => {
-    if (selectedOption === currentQuestion.correctAnswer) {
-      setScore(score + 1);
+  const addExpense = () => {
+    if (title.trim() === '' || amount.trim() === '') {
+      return;
     }
 
-    const nextQuestionIndex = currentQuestionIndex + 1;
-    if (nextQuestionIndex < questions.length) {
-      setCurrentQuestionIndex(nextQuestionIndex);
-    } else {
-      setShowResult(true);
-    }
+    const newExpense = {
+      id: Date.now().toString(),
+      title,
+      amount: parseFloat(amount),
+    };
+
+    setExpenses([...expenses, newExpense]);
+    setTitle('');
+    setAmount('');
   };
 
-  const restartQuiz = () => {
-    setCurrentQuestionIndex(0);
-    setScore(0);
-    setShowResult(false);
+  const deleteExpense = (id) => {
+    setExpenses(expenses.filter((item) => item.id !== id));
   };
+
+  const totalExpense = expenses.reduce(
+    (sum, item) => sum + item.amount,
+    0
+  );
 
   return (
     <View style={styles.container}>
-      {!showResult ? (
-        <>
-          <Text style={styles.questionCount}>
-            Question {currentQuestionIndex + 1} / {questions.length}
-          </Text>
+      <Text style={styles.heading}>Expense Tracker</Text>
 
-          <Text style={styles.questionText}>
-            {currentQuestion.question}
-          </Text>
+      {/* Input Section */}
+      <TextInput
+        style={styles.input}
+        placeholder="Expense title"
+        value={title}
+        onChangeText={setTitle}
+      />
 
-          {currentQuestion.options.map((option, index) => (
+      <TextInput
+        style={styles.input}
+        placeholder="Amount"
+        keyboardType="numeric"
+        value={amount}
+        onChangeText={setAmount}
+      />
+
+      <TouchableOpacity style={styles.addButton} onPress={addExpense}>
+        <Text style={styles.addButtonText}>Add Expense</Text>
+      </TouchableOpacity>
+
+      {/* Total */}
+      <Text style={styles.total}>
+        Total Spent: ₹ {totalExpense.toFixed(2)}
+      </Text>
+
+      {/* Expense List */}
+      <FlatList
+        data={expenses}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.expenseItem}>
+            <View>
+              <Text style={styles.expenseTitle}>{item.title}</Text>
+              <Text style={styles.expenseAmount}>₹ {item.amount}</Text>
+            </View>
+
             <TouchableOpacity
-              key={index}
-              style={styles.optionButton}
-              onPress={() => handleOptionPress(option)}
+              style={styles.deleteButton}
+              onPress={() => deleteExpense(item.id)}
             >
-              <Text style={styles.optionText}>{option}</Text>
+              <Text style={styles.deleteText}>Delete</Text>
             </TouchableOpacity>
-          ))}
-        </>
-      ) : (
-        <>
-          <Text style={styles.resultText}>Quiz Completed!</Text>
-
-          <Text style={styles.scoreText}>
-            Your Score: {score} / {questions.length}
-          </Text>
-
-          <TouchableOpacity
-            style={styles.restartButton}
-            onPress={restartQuiz}
-          >
-            <Text style={styles.restartText}>Restart Quiz</Text>
-          </TouchableOpacity>
-        </>
-      )}
+          </View>
+        )}
+      />
     </View>
   );
 }
 
-
+/* =======================
+   STYLES
+   ======================= */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f2',
     padding: 20,
-    justifyContent: 'center',
+    backgroundColor: '#f2f2f2',
   },
-  questionCount: {
-    fontSize: 18,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  questionText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  optionButton: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 5,
-    marginVertical: 8,
-  },
-  optionText: {
-    color: '#fff',
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  resultText: {
+  heading: {
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
   },
-  scoreText: {
-    fontSize: 22,
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  restartButton: {
-    backgroundColor: '#2196F3',
+  input: {
+    backgroundColor: '#fff',
     padding: 15,
     borderRadius: 5,
+    fontSize: 16,
+    marginBottom: 10,
   },
-  restartText: {
+  addButton: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  addButtonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  total: {
+    fontSize: 20,
     textAlign: 'center',
+    marginBottom: 10,
+    fontWeight: 'bold',
+  },
+  expenseItem: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 5,
+    marginVertical: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  expenseTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  expenseAmount: {
+    fontSize: 16,
+    color: '#555',
+  },
+  deleteButton: {
+    backgroundColor: '#f44336',
+    padding: 8,
+    borderRadius: 5,
+  },
+  deleteText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
