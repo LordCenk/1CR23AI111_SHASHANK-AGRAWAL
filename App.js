@@ -2,137 +2,152 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  StyleSheet
+  StyleSheet,
 } from 'react-native';
 
+
+const questions = [
+  {
+    question: 'What does React Native use to build UI?',
+    options: ['HTML', 'Native Components', 'XML', 'CSS'],
+    correctAnswer: 'Native Components',
+  },
+  {
+    question: 'Which hook is used for state management?',
+    options: ['useEffect', 'useState', 'useRef', 'useMemo'],
+    correctAnswer: 'useState',
+  },
+  {
+    question: 'Expo is mainly used for?',
+    options: [
+      'Database',
+      'Backend',
+      'Simplifying React Native development',
+      'Testing only',
+    ],
+    correctAnswer: 'Simplifying React Native development',
+  },
+];
+
+
 export default function App() {
-  // State variables
-  const [num1, setNum1] = useState('');
-  const [num2, setNum2] = useState('');
-  const [result, setResult] = useState(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
 
-  // Convert string input to number safely
-  const parseNumbers = () => {
-    return {
-      a: parseFloat(num1),
-      b: parseFloat(num2),
-    };
-  };
+  const currentQuestion = questions[currentQuestionIndex];
 
-  const add = () => {
-    const { a, b } = parseNumbers();
-    setResult(a + b);
-  };
-
-  const subtract = () => {
-    const { a, b } = parseNumbers();
-    setResult(a - b);
-  };
-
-  const multiply = () => {
-    const { a, b } = parseNumbers();
-    setResult(a * b);
-  };
-
-  const divide = () => {
-    const { a, b } = parseNumbers();
-    if (b === 0) {
-      setResult('Cannot divide by zero');
-    } else {
-      setResult(a / b);
+  const handleOptionPress = (selectedOption) => {
+    if (selectedOption === currentQuestion.correctAnswer) {
+      setScore(score + 1);
     }
+
+    const nextQuestionIndex = currentQuestionIndex + 1;
+    if (nextQuestionIndex < questions.length) {
+      setCurrentQuestionIndex(nextQuestionIndex);
+    } else {
+      setShowResult(true);
+    }
+  };
+
+  const restartQuiz = () => {
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setShowResult(false);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Simple Calculator</Text>
+      {!showResult ? (
+        <>
+          <Text style={styles.questionCount}>
+            Question {currentQuestionIndex + 1} / {questions.length}
+          </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter first number"
-        keyboardType="numeric"
-        value={num1}
-        onChangeText={setNum1}
-      />
+          <Text style={styles.questionText}>
+            {currentQuestion.question}
+          </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter second number"
-        keyboardType="numeric"
-        value={num2}
-        onChangeText={setNum2}
-      />
+          {currentQuestion.options.map((option, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.optionButton}
+              onPress={() => handleOptionPress(option)}
+            >
+              <Text style={styles.optionText}>{option}</Text>
+            </TouchableOpacity>
+          ))}
+        </>
+      ) : (
+        <>
+          <Text style={styles.resultText}>Quiz Completed!</Text>
 
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.button} onPress={add}>
-          <Text style={styles.buttonText}>+</Text>
-        </TouchableOpacity>
+          <Text style={styles.scoreText}>
+            Your Score: {score} / {questions.length}
+          </Text>
 
-        <TouchableOpacity style={styles.button} onPress={subtract}>
-          <Text style={styles.buttonText}>−</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={multiply}>
-          <Text style={styles.buttonText}>×</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={divide}>
-          <Text style={styles.buttonText}>÷</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.result}>
-        Result: {result !== null ? result : '—'}
-      </Text>
+          <TouchableOpacity
+            style={styles.restartButton}
+            onPress={restartQuiz}
+          >
+            <Text style={styles.restartText}>Restart Quiz</Text>
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 }
 
-/* =======================
-   STYLES OBJECT
-   ======================= */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f2f2f2',
-    justifyContent: 'center',
     padding: 20,
+    justifyContent: 'center',
   },
-  title: {
-    fontSize: 28,
-    textAlign: 'center',
-    marginBottom: 30,
-    fontWeight: 'bold',
-  },
-  input: {
-    backgroundColor: '#fff',
-    padding: 15,
+  questionCount: {
     fontSize: 18,
-    marginBottom: 15,
-    borderRadius: 5,
+    marginBottom: 10,
+    textAlign: 'center',
   },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 20,
+  questionText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  button: {
+  optionButton: {
     backgroundColor: '#4CAF50',
     padding: 15,
-    width: '22%',
-    alignItems: 'center',
     borderRadius: 5,
+    marginVertical: 8,
   },
-  buttonText: {
+  optionText: {
     color: '#fff',
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 18,
+    textAlign: 'center',
   },
-  result: {
+  resultText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  scoreText: {
     fontSize: 22,
     textAlign: 'center',
-    marginTop: 20,
+    marginBottom: 30,
+  },
+  restartButton: {
+    backgroundColor: '#2196F3',
+    padding: 15,
+    borderRadius: 5,
+  },
+  restartText: {
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center',
   },
 });
